@@ -3,9 +3,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    initUI();
     capturer = nullptr;
     data_lock = new QMutex();
+    initUI();
     populateSavedList();
 }
 
@@ -31,6 +31,8 @@ void MainWindow::initUI()
     shutterButton = new QPushButton(this);
     shutterButton->setText("Take a Photo");
     tools_layout->addWidget(shutterButton, 0, 0, Qt::AlignHCenter);
+
+    connect(shutterButton, SIGNAL(clicked(bool)),this, SLOT(takePhoto()));
 
     // list of saved videos
     saved_list = new QListView(this);
@@ -80,12 +82,33 @@ void MainWindow::createActions()
 
 void MainWindow::populateSavedList()
 {
-    // TODO
+    QDir dir(Utilities::getDataPath());
+    QStringList nameFilters;
+    nameFilters << "*.jpg";
+    QFileInfoList files = dir.entryInfoList(nameFilters,
+                                            QDir::NoDotAndDotDot | QDir::Files,
+                                            QDir::Name);
+    foreach(QFileInfo cover, files) {
+        QString name = cover.baseName();
+        QStandardItem *item = new QStandardItem();
+        list_model->appendRow(item);
+        QModelIndex index = list_model->indexFromItem(item);
+        list_model->setData(index, QPixmap(cover.absoluteFilePath()).scaledToHeight(145),
+                            Qt::DecorationRole);
+        list_model->setData(index, name, Qt::DisplayRole);
+    }
 }
 
 void MainWindow::appendSavedPhoto(QString name)
 {
-    // TODO
+    QString photo_path = Utilities::getPhotoPath(name, "jpg");
+    QStandardItem *item = new QStandardItem();
+    list_model->appendRow(item);
+    QModelIndex index = list_model->indexFromItem(item);
+    list_model->setData(index, QPixmap(photo_path).scaledToHeight(145),
+                        Qt::DecorationRole);
+    list_model->setData(index, name, Qt::DisplayRole);
+    saved_list->scrollTo(index);
 }
 
 void MainWindow::showCameraInfo()
@@ -106,11 +129,13 @@ void MainWindow::openCamera()
         // if a thread is already runngin, stop it
         capturer->setRunning(false);
         disconnect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+        disconnect(capturer, &CaptureThread::photoTaken, this, &MainWindow::appendSavedPhoto);
         connect(capturer, &CaptureThread::finished, capturer, &CaptureThread::deleteLater);
     }
     int camID = 0;
     capturer = new CaptureThread(camID, data_lock);
     connect(capturer, &CaptureThread::frameCaptured, this, &MainWindow::updateFrame);
+    connect(capturer, &CaptureThread::photoTaken, this, &MainWindow::appendSavedPhoto);
     capturer->start();
     mainStatusLabel->setText(QString("Capturing camera %1").arg(camID));
 }
@@ -137,4 +162,11 @@ void MainWindow::showAbout()
     text += "Ignacio Belitzky\n\n";
     text += "License: GNU General Public License v3";
     QMessageBox::information(this, "About", text);
+}
+
+void MainWindow::takePhoto()
+{
+if(capturer != nullptr) {
+    capturer->takePhoto();
+}
 }

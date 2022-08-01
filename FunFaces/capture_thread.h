@@ -14,15 +14,19 @@ class CaptureThread : public QThread
     Q_OBJECT
 public:
     CaptureThread(int camera, QMutex *lock);
-    CaptureThread(QString videoPath, QMutex *lock);
     ~CaptureThread();
     void setRunning(bool run) { running = run; }
+    void takePhoto() { taking_photo = true; }
 
 protected:
     void run() override;
 
 signals:
     void frameCaptured(cv::Mat *data);
+    void photoTaken(QString name);
+
+private:
+    void takePhoto(cv::Mat &frame);
 
 private:
     bool running;
@@ -30,9 +34,10 @@ private:
     QString videoPath;
     QMutex *data_lock;
     cv::Mat frame;
-
-    // Video data
     int frame_width, frame_height;
+    bool taking_photo;
+
+
 };
 
 #endif // CAPTURE_THREAD_H

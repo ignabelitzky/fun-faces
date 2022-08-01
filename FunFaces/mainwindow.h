@@ -68,5 +68,6 @@ private slots:
     void openCamera();
     void updateFrame(cv::Mat *mat);
     void showAbout();
+    void takePhoto();
 };
 #endif // MAINWINDOW_H
