@@ -27,6 +27,7 @@ signals:
 
 private:
     void takePhoto(cv::Mat &frame);
+    void detectFaces(cv::Mat &frame);
 
 private:
     bool running;
@@ -36,6 +37,7 @@ private:
     cv::Mat frame;
     int frame_width, frame_height;
     bool taking_photo;
+    cv::CascadeClassifier *classifier;
 
 
 };
