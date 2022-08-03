@@ -21,7 +21,7 @@ HEADERS += \
 
 unix: !mac {
     INCLUDEPATH += /usr/include/opencv4
-    LIBS += -L/usr/include/opencv/lib -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_video -lopencv_videoio -lopencv_objdetect
+    LIBS += -L/usr/include/opencv/lib -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_video -lopencv_videoio -lopencv_objdetect -lopencv_face
 }
 
 DEFINES += OPENCV_DATA_DIR=\\\"/usr/share/opencv4/\\\"

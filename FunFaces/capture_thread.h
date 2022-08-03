@@ -5,8 +5,10 @@
 #include <QThread>
 #include <QMutex>
 #include <QElapsedTimer>
+#include <QApplication>
 #include <vector>
 #include "opencv2/opencv.hpp"
+#include "opencv2/face/facemark.hpp"
 #include "utilities.h"
 
 class CaptureThread : public QThread
@@ -38,6 +40,7 @@ private:
     int frame_width, frame_height;
     bool taking_photo;
     cv::CascadeClassifier *classifier;
+    cv::Ptr<cv::face::Facemark> mark_detector;
 
 
 };
