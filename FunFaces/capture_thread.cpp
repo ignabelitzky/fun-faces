@@ -76,4 +76,24 @@ void CaptureThread::detectFaces(cv::Mat &frame)
     }
 }
 
+void CaptureThread::loadOrnaments()
+{
+    QImage image;
+    image.load(":/images/glasses.jpg");
+    image = image.convertToFormat(QImage::Format_RGB888);
+    glasses = cv::Mat(
+                image.height(), image.width(), CV_8UC3,
+                image.bits(), image.bytesPerLine()).clone();
+    image.load(":/images/mustache.jpg");
+    image = image.convertToFormat(QImage::Format_RGB888);
+    mustache = cv::Mat(
+                image.height(), image.width(), CV_8UC3,
+                image.bits(), image.bytesPerLine()).clone();
+    image.load(":/iamges/mouse-nose.jpg");
+    image = image.convertToFormat(QImage::Format_RGB888);
+    mouse_nose = cv::Mat(
+                image.height(), image.width(), CV_8UC3,
+                image.bits(), image.bytesPerLine()).clone();
+}
+
 

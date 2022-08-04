@@ -30,6 +30,7 @@ signals:
 private:
     void takePhoto(cv::Mat &frame);
     void detectFaces(cv::Mat &frame);
+    void loadOrnaments();
 
 private:
     bool running;
@@ -41,6 +42,9 @@ private:
     bool taking_photo;
     cv::CascadeClassifier *classifier;
     cv::Ptr<cv::face::Facemark> mark_detector;
+    cv::Mat glasses;
+    cv::Mat mustache;
+    cv::Mat mouse_nose;
 
 
 };
