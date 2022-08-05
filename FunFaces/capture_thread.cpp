@@ -6,11 +6,22 @@ CaptureThread::CaptureThread(int camera, QMutex *lock):
     frame_width = frame_height = 0;
     taking_photo = false;
     loadOrnaments();
+    masks_flag = 0;
 }
 
 CaptureThread::~CaptureThread()
 {
 
+}
+
+void CaptureThread::updateMasksFlag(MASK_TYPE type, bool on_or_off)
+{
+    uint8_t bit = 1 << type;
+    if(on_or_off) {
+        masks_flag |= bit;
+    } else {
+        masks_flag &= ~bit;
+    }
 }
 
 void CaptureThread::run()
@@ -29,7 +40,8 @@ void CaptureThread::run()
         cap >> tmp_frame;
         if(tmp_frame.empty())
             break;
-        detectFaces(tmp_frame);
+        if(masks_flag > 0)
+            detectFaces(tmp_frame);
         if(taking_photo) {
             takePhoto(tmp_frame);
         }
@@ -61,21 +73,28 @@ void CaptureThread::detectFaces(cv::Mat &frame)
     cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
     classifier->detectMultiScale(gray_frame, faces, 1.3, 5);
     cv::Scalar color = cv::Scalar(0, 0, 255);   // red
-    for(size_t i = 0; i < faces.size(); i++) {
-        cv::rectangle(frame, faces[i], color, 1);
+    if(isMaskOn(RECTANGLE)) {
+        for(size_t i = 0; i < faces.size(); i++) {
+            cv::rectangle(frame, faces[i], color, 1);
+        }
     }
     std::vector<std::vector<cv::Point2f>> shapes;
     if(mark_detector->fit(frame, faces, shapes)) {
         // draw facial land marks
         for(unsigned long i = 0u; i < faces.size(); i++) {
-            for(unsigned long k = 0u; k < shapes[i].size(); k++) {
-                // cv::circle(frame, shapes[i][k], 2, color, cv::FILLED);
-                // QString index = QString("%1").arg(k);
-                //cv::putText(frame, index.toStdString(), shapes[i][k], cv::FONT_HERSHEY_SIMPLEX, 0.4, color, 2);
+            if (isMaskOn(LANDMARKS)) {
+                for(unsigned long k = 0u; k < shapes[i].size(); k++) {
+                    cv::circle(frame, shapes[i][k], 2, color, cv::FILLED);
+                    // QString index = QString("%1").arg(k);
+                    //cv::putText(frame, index.toStdString(), shapes[i][k], cv::FONT_HERSHEY_SIMPLEX, 0.4, color, 2);
+                }
             }
-            //drawGlasses(frame, shapes[i]);
-            //drawMustache(frame, shapes[i]);
-            drawMouseNose(frame, shapes[i]);
+            if(isMaskOn(GLASSES))
+                drawGlasses(frame, shapes[i]);
+            if(isMaskOn(MUSTACHE))
+                drawMustache(frame, shapes[i]);
+            if(isMaskOn(MOUSE_NOSE))
+                drawMouseNose(frame, shapes[i]);
         }
     }
 }
@@ -167,6 +186,11 @@ void CaptureThread::drawMouseNose(cv::Mat &frame, std::vector<cv::Point2f> &mark
     center = marks[30];
     cv::Rect rec(center.x - rotated.cols / 2, center.y - rotated.rows / 2, rotated.cols, rotated.rows);
     frame(rec) &= rotated;
+}
+
+bool CaptureThread::isMaskOn(MASK_TYPE type)
+{
+    return (masks_flag & (1 << type)) != 0;
 }
 
 

@@ -6,7 +6,6 @@ MainWindow::MainWindow(QWidget *parent)
     capturer = nullptr;
     data_lock = new QMutex();
     initUI();
-    populateSavedList();
 }
 
 MainWindow::~MainWindow()
@@ -34,9 +33,28 @@ void MainWindow::initUI()
 
     connect(shutterButton, SIGNAL(clicked(bool)),this, SLOT(takePhoto()));
 
+    // masks
+    QGridLayout *masks_layout = new QGridLayout();
+    main_layout->addLayout(masks_layout, 13, 0, 1, 1);
+    masks_layout->addWidget(new QLabel("Select Masks:", this));
+    for(int i = 0; i < CaptureThread::MASK_COUNT; i++) {
+        mask_checkboxes[i] = new QCheckBox(this);
+        masks_layout->addWidget(mask_checkboxes[i], 0, i + 1);
+        connect(mask_checkboxes[i], SIGNAL(stateChanged(int)), this, SLOT(updateMasks(int)));
+    }
+    mask_checkboxes[0]->setText("Rectangle");
+    mask_checkboxes[1]->setText("Landmarks");
+    mask_checkboxes[2]->setText("Glasses");
+    mask_checkboxes[3]->setText("Mustache");
+    mask_checkboxes[4]->setText("Mouse Nose");
+
+    for(int i = 0; i < CaptureThread::MASK_COUNT; i++) {
+        mask_checkboxes[i]->setCheckState(Qt::Unchecked);
+    }
+
     // list of saved videos
     saved_list = new QListView(this);
-    main_layout->addWidget(saved_list, 13, 0, 4, 1);
+    main_layout->addWidget(saved_list, 14, 0, 4, 1);
 
     QWidget *widget = new QWidget();
     widget->setLayout(main_layout);
@@ -48,7 +66,6 @@ void MainWindow::initUI()
     mainStatusBar->addPermanentWidget(mainStatusLabel);
     mainStatusLabel->setText("Fun Faces is ready");
 
-    createActions();
 
     // list of saved videos
     saved_list = new QListView(this);
@@ -58,7 +75,10 @@ void MainWindow::initUI()
     saved_list->setWrapping(false);
     list_model = new QStandardItemModel(this);
     saved_list->setModel(list_model);
-    main_layout->addWidget(saved_list, 13, 0, 4, 1);
+    main_layout->addWidget(saved_list, 14, 0, 4, 1);
+
+    createActions();
+    populateSavedList();
 }
 
 void MainWindow::createActions()
@@ -169,4 +189,17 @@ void MainWindow::takePhoto()
 if(capturer != nullptr) {
     capturer->takePhoto();
 }
+}
+
+void MainWindow::updateMasks(int status)
+{
+    if(capturer == nullptr) {
+        return;
+    }
+    QCheckBox *box = qobject_cast<QCheckBox*>(sender());
+    for(int i = 0; i < CaptureThread::MASK_COUNT; i++) {
+        if(mask_checkboxes[i] == box) {
+            capturer->updateMasksFlag(static_cast<CaptureThread::MASK_TYPE> (i), status != 0);
+        }
+    }
 }

@@ -57,6 +57,8 @@ private:
 
     QStandardItemModel *list_model;
 
+    QCheckBox *mask_checkboxes[CaptureThread::MASK_COUNT];
+
 private:
     void initUI();
     void createActions();
@@ -69,5 +71,6 @@ private slots:
     void updateFrame(cv::Mat *mat);
     void showAbout();
     void takePhoto();
+    void updateMasks(int status);
 };
 #endif // MAINWINDOW_H
