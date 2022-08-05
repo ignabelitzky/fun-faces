@@ -31,6 +31,9 @@ private:
     void takePhoto(cv::Mat &frame);
     void detectFaces(cv::Mat &frame);
     void loadOrnaments();
+    void drawGlasses(cv::Mat &frame, std::vector<cv::Point2f> &marks);
+    void drawMustache(cv::Mat &frame, std::vector<cv::Point2f> &marks);
+    void drawMouseNose(cv::Mat &frame, std::vector<cv::Point2f> &marks);
 
 private:
     bool running;
