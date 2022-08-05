@@ -1,2 +1,2 @@
-# fun-faces
-A simple application that put some filters in a webcam video feed.
+# FunFaces
+A simple application that put some masks in a webcam video feed.
